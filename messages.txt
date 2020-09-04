@@ -46,3 +46,4 @@
 {"text":"hello there!","nick":"dude","room":"general","date":"2020-09-02T01:24:21.389Z"}
 {"text":"hello there!","nick":"dude","room":"asdfsdafsdaf","date":"2020-09-02T01:24:34.641Z"}
 {"text":"dafsadf","nick":"dude","room":"lkjflaskfjsa","date":"2020-09-02T02:16:17.050Z"}
+{"text":"so where","nick":"dustincat","room":null,"date":"2020-09-04T06:36:47.769Z"}

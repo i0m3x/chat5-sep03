@@ -2,19 +2,34 @@
 import Chat from './Chat'
 import Rooms from './Rooms'
 import MessageForm from './MessageForm'
+import LoginForm from './LoginForm'
 import React from 'react'
 import io from 'socket.io-client'
+import {
+  BrowserRouter as Router,
+  Switch,
+  Route,
+  Link,
+  Redirect
+} from "react-router-dom"
+
+
+
+
 const socket = io()
+
+
 
 class App extends React.Component {
   constructor (props) {
     super(props)
-    this.state = { messages: [], room: 'general' }
+    this.state = { messages: [], nick: null, loggedIn: false }
   }
 
   componentDidMount () {
     socket.on('chat message', msg => {
       console.log('Got a message:', msg)
+      console.log(this.state.loggedIn, 'loggedIn state')
       this.setState({ messages: this.state.messages.concat(msg) })
     })
 
@@ -26,9 +41,15 @@ class App extends React.Component {
         this.setState({ messages: data })
       })
   }
+  loginFunc(nick, password) {
+    this.setState({
+      nick: nick,
+      loggedIn: true,
+    })
+  }
 
-  sendMessage (text) {
-    const message = { text: text, nick: this.props.nick, room: this.state.room, date: new Date() }
+  sendMessage (text, messageRoom) {
+    const message = { text: text, nick: this.state.nick, room: messageRoom, date: new Date() }
     socket.emit('chat message', message)
   }
 
@@ -37,10 +58,6 @@ class App extends React.Component {
     this.setState({ room: room })
   }
 
-  handleChangeRoom (evt) {
-    const room = evt.target.value
-    this.setState({ room: room })
-  }
 
   getRooms () {
     const rooms = this.state.messages.map(msg => msg.room)
@@ -49,20 +66,66 @@ class App extends React.Component {
     return Array.from(new Set(filtered)) // filters out the duplicates
   }
 
+  logMeOut() {
+    this.setState({loggedIn: false})
+  }
+
   render () {
     return (
-      <div>
-        <Rooms
-          room={this.state.room}
-          rooms={this.getRooms()}
-          handleAddRoom={this.handleAddRoom.bind(this)}
-          handleChangeRoom={this.handleChangeRoom.bind(this)}
-        />
-        <MessageForm sendMessage={this.sendMessage.bind(this)} />
-        <Chat messages={this.state.messages} room={this.state.room} />
-      </div>
+      <Router>
+        <div>
+        <h2>Links</h2>
+        <ul>
+          <li>
+            <Link to="/signup">signup</Link>
+          </li>
+          <li>
+            <Link to="/logout" onClick={this.logMeOut.bind(this)}>Log out</Link>
+          </li>
+          <li>
+            <Link to="/login">Login</Link>
+          </li>
+          <li>
+            <Link to="/rooms/general">Chat</Link>
+          </li>
+          <li>
+            <Link to="/">Home</Link>
+          </li>
+        </ul>
+        <Switch>
+          <Route path="/signup">
+          
+          </Route>
+
+          <Route path="/logout" >
+            <Redirect to='/login' />
+          </Route>
+
+          <Route path="/login">
+          {this.state.loggedIn 
+            ? <Redirect to="/" />
+            : <LoginForm loginFunc={this.loginFunc.bind(this)}/>}
+
+          </Route>
+          <Route path="/rooms/:room">
+            <Chat sendMessage={this.sendMessage.bind(this)} messages={this.state.messages}/>
+          </Route>
+          <Route path="/">
+          {this.state.loggedIn
+            ? <Rooms
+            rooms={this.getRooms()}
+            handleAddRoom={this.handleAddRoom.bind(this)}
+            />
+            : <Redirect to="/login" />}
+          </Route>
+        </Switch>
+
+    </div>
+    </Router>
     )
   }
 }
 
 export default App
+
+//assignment. make ternaries from rooms - sensei dustino
